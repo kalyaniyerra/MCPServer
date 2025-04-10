@@ -26,17 +26,19 @@ public class MCPController {
     @PostMapping("/chat")
     public ResponseEntity<ChatResponse> processChat(@RequestBody ChatRequest chatRequest) {
         logger.info("Received chat request for patient ID: {}", chatRequest.getPatientId());
-		return null;
+		//String fhirServerUrl = chatRequest.getFhirServerUrl();
+           // String fhirAccessToken = (String) chatRequest.get("accessToken");
+
         
-     /*   try {
+       try {
             // Step 1: Extract relevant patient data based on the query
             String patientData = fhirService.getRelevantPatientData(
                 chatRequest.getPatientId(), 
                 chatRequest.getQuery()
             );
-            
+            System.out.println("patientData: " + patientData);
             // Step 2: Process the query with the LLM using patient data
-            String llmResponse = llmService.processQuery(chatRequest.getQuery(), patientData);
+             String llmResponse = llmService.processQuery(chatRequest.getQuery(), patientData);
             
             // Step 3: Return the response
             ChatResponse response = new ChatResponse(llmResponse);
@@ -47,7 +49,7 @@ public class MCPController {
             return ResponseEntity.internalServerError().body(
                 new ChatResponse("Sorry, I encountered an error while processing your request.")
             );
-        }*/
+        }
     }
     
     @GetMapping("/health")

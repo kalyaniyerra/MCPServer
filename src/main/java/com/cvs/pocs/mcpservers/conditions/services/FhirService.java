@@ -1,12 +1,20 @@
 package com.cvs.pocs.mcpservers.conditions.services;
 
 //import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Condition;
+import org.hl7.fhir.r4.model.AllergyIntolerance;
+import org.hl7.fhir.r4.model.MedicationRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import com.cvs.pocs.mcpservers.conditions.util.FhirParserUtil;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -72,11 +80,9 @@ public class FhirService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-            
-            // In a real implementation, parse the JSON and extract relevant fields
-            return "PATIENT DEMOGRAPHICS:\n" + 
-                   "ID: " + patientId + "\n" +
-                   "(Demographics would be parsed from FHIR Patient resource)\n\n";
+            Patient patient = FhirParserUtil.parsePatient(patientJson);
+            String patientData = FhirParserUtil.formatPatient(patient);
+            return "PATIENT DEMOGRAPHICS:\n" + patientData;
                    
         } catch (Exception e) {
             logger.error("Error retrieving patient demographics", e);
@@ -94,15 +100,22 @@ public class FhirService {
                     .path("/Observation")
                     .queryParam("patient", patientId)
                     .queryParam("category", "laboratory")
-                    .queryParam("date", "ge" + dateParam)
+                  //  .queryParam("date", "ge" + dateParam)
                     .build())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-                
-            // In a real implementation, parse the JSON and format lab results
+            logger.info("Observations JSON: {}", observationsJson);
+            Bundle bundle = FhirParserUtil.parseBundle(observationsJson);
+            StringBuilder labResults = new StringBuilder();
+            for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+                if (entry.hasResource() && entry.getResource() instanceof Observation) {
+                    Observation observation = (Observation) entry.getResource();
+                    labResults.append(FhirParserUtil.formatObservation(observation));
+                }
+            }
             return "LABORATORY RESULTS (LAST " + months + " MONTHS):\n" +
-                   "(Lab results would be parsed from FHIR Observation resources)\n\n";
+                   labResults.toString();
                    
         } catch (Exception e) {
             logger.error("Error retrieving lab results", e);
@@ -120,10 +133,17 @@ public class FhirService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-                
-            // In a real implementation, parse the JSON and format conditions
-            return "CONDITIONS:\n" +
-                   "(Conditions would be parsed from FHIR Condition resources)\n\n";
+            logger.info("Conditions JSON: {}", conditionsJson);
+            Bundle bundle = FhirParserUtil.parseBundle(conditionsJson);
+            StringBuilder conditions = new StringBuilder();
+            for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+                if (entry.hasResource() && entry.getResource() instanceof Condition) {
+                    Condition condition = (Condition) entry.getResource();
+                    conditions.append(FhirParserUtil.formatCondition(condition));
+                }
+            }
+            return "CONDITIONS:\n" + conditions.toString();
+
                    
         } catch (Exception e) {
             logger.error("Error retrieving conditions", e);
@@ -142,10 +162,16 @@ public class FhirService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-                
-            // In a real implementation, parse the JSON and format medications
-            return "ACTIVE MEDICATIONS:\n" +
-                   "(Medications would be parsed from FHIR MedicationRequest resources)\n\n";
+            logger.info("Medications JSON: {}", medicationsJson);
+            Bundle bundle = FhirParserUtil.parseBundle(medicationsJson);
+            StringBuilder medications = new StringBuilder();
+            for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+                if (entry.hasResource() && entry.getResource() instanceof MedicationRequest) {
+                    MedicationRequest medicationRequest = (MedicationRequest) entry.getResource();
+                    medications.append(FhirParserUtil.formatMedication(medicationRequest)); 
+                }
+            }
+            return "ACTIVE MEDICATIONS:\n" + medications.toString();
                    
         } catch (Exception e) {
             logger.error("Error retrieving medications", e);
@@ -163,10 +189,16 @@ public class FhirService {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-                
-            // In a real implementation, parse the JSON and format allergies
-            return "ALLERGIES:\n" +
-                   "(Allergies would be parsed from FHIR AllergyIntolerance resources)\n\n";
+            logger.info("Allergies JSON: {}", allergiesJson);
+            Bundle bundle = FhirParserUtil.parseBundle(allergiesJson);
+            StringBuilder allergies = new StringBuilder();
+            for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+                if (entry.hasResource() && entry.getResource() instanceof AllergyIntolerance) {
+                    AllergyIntolerance allergyIntolerance = (AllergyIntolerance) entry.getResource();
+                    allergies.append(FhirParserUtil.formatAllergy(allergyIntolerance));
+                }
+            }
+            return "ALLERGIES:\n" + allergies.toString();
                    
         } catch (Exception e) {
             logger.error("Error retrieving allergies", e);
@@ -184,15 +216,22 @@ public class FhirService {
                     .path("/Observation")
                     .queryParam("patient", patientId)
                     .queryParam("category", "vital-signs")
-                    .queryParam("date", "ge" + dateParam)
+                //    .queryParam("date", "ge" + dateParam)
                     .build())
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
-                
-            // In a real implementation, parse the JSON and format vital signs
+            logger.info("Vitals JSON: {}", vitalsJson);
+            Bundle bundle = FhirParserUtil.parseBundle(vitalsJson);
+            StringBuilder vitals = new StringBuilder();
+            for (Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+                if (entry.hasResource() && entry.getResource() instanceof Observation) {
+                    Observation observation = (Observation) entry.getResource();
+                    vitals.append(FhirParserUtil.formatObservation(observation));   
+                }
+            }
             return "VITAL SIGNS (LAST " + months + " MONTHS):\n" +
-                   "(Vital signs would be parsed from FHIR Observation resources)\n\n";
+                   vitals.toString();
                    
         } catch (Exception e) {
             logger.error("Error retrieving vital signs", e);

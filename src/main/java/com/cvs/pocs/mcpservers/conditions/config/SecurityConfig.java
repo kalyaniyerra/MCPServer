@@ -2,7 +2,6 @@ package com.cvs.pocs.mcpservers.conditions.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -18,10 +17,8 @@ public class SecurityConfig {
             .csrf().disable()
             .authorizeRequests(authorizeRequests ->
                 authorizeRequests
-                    .requestMatchers("/api/v1/health").permitAll()
-                    .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer().jwt();
+                    .anyRequest().permitAll()
+            );
         
         http.sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
